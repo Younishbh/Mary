@@ -1,62 +1,214 @@
-<!doctype html>
-<html lang="ar">
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>أغنية حنين — عبد الجبار</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background: linear-gradient(135deg, #5b2c6f, #8e44ad);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: "Tahoma", sans-serif;
-      color: #fff;
-    }
-    .video-container {
-      width: 90%;
-      max-width: 800px;
-      aspect-ratio: 16 / 9;
-      background: #000;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-      border: 2px solid rgba(255,255,255,0.2);
-    }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-    }
-    .title {
-      margin-bottom: 16px;
-      font-size: 24px;
-      font-weight: bold;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.7);
-    }
-    .dedication {
-      margin-top: 18px;
-      font-size: 20px;
-      font-weight: normal;
-      background: rgba(255, 255, 255, 0.1);
-      padding: 10px 20px;
-      border-radius: 10px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مَكْتَبَةُ مَارِي 🦋🎀</title>
+    
+    <!-- الخطوط -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Great+Vibes&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    
+    <!-- المكاتب -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- مكتبة قراءة Google Sheets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { 
+                    fontFamily: { 
+                        sans: ['Tajawal', 'sans-serif'],
+                        script: ['"Great Vibes"', 'cursive'],
+                        deco: ['"Amiri"', 'serif'],
+                    },
+                    colors: {
+                        primary: '#db2777',
+                        secondary: '#fce7f3',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Tajawal', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
 </head>
-<body>
-  <div class="title">حنين — عبد الجبار</div>
-  <div class="video-container">
-    <iframe 
-      src="https://www.youtube.com/embed/3yLnpJ51Okg" 
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-      allowfullscreen>
-    </iframe>
-  </div>
-  <div class="dedication">إهداء إلى عزيزتي (حنينه)</div>
+
+<body class="min-h-screen bg-pink-50 text-gray-800 relative selection:bg-pink-200">
+
+    <!-- الرأس -->
+    <header class="bg-gradient-to-r from-pink-600 to-rose-500 text-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <!-- الشعار -->
+                    <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-pink-200">
+                        <span class="font-script text-3xl text-pink-600 pt-1 pr-1 font-bold">My</span>
+                    </div>
+                    <!-- العنوان -->
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-3xl font-deco font-bold tracking-wide text-white drop-shadow-md">مَكْتَبَةُ مَارِي</h1>
+                        <span class="bg-white/20 px-2 py-1 rounded-full text-xl shadow-sm border border-white/10">🦋🎀</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- البحث -->
+            <div class="mt-4 relative max-w-xl mx-auto">
+                <input type="text" placeholder="ابحث عن رواية..." 
+                    class="w-full pr-10 pl-4 py-2 rounded-full text-gray-800 border-2 border-pink-300 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200"
+                    oninput="handleSearch(this.value)">
+                <i data-lucide="search" class="absolute right-3 top-2.5 text-pink-400 w-5 h-5"></i>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى -->
+    <div class="container mx-auto px-4 py-8 pb-10">
+        
+        <!-- حالة التحميل -->
+        <div id="loadingState" class="text-center py-20">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mb-4"></div>
+            <p class="text-pink-600 text-lg">جاري جلب الروايات من المكتبة...</p>
+        </div>
+
+        <!-- شبكة الروايات -->
+        <div id="novelsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+
+        <!-- حالة فارغة -->
+        <div id="emptyState" class="hidden text-center py-20 text-gray-400">
+            <p class="text-xl text-pink-400 font-bold font-deco">لا توجد روايات مضافة في الجدول 🦋</p>
+        </div>
+    </div>
+
+    <!-- نافذة التفاصيل -->
+    <div id="detailsModal" class="fixed inset-0 bg-pink-900/60 backdrop-blur-sm hidden items-center justify-center p-4 z-50" onclick="closeDetailsModal()">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto no-scrollbar shadow-2xl relative border-2 border-pink-100" onclick="event.stopPropagation()">
+            <button onclick="closeDetailsModal()" class="absolute top-4 left-4 bg-white/80 p-2 rounded-full hover:bg-white z-10 shadow-md">
+                <i data-lucide="x" class="w-6 h-6 text-gray-800"></i>
+            </button>
+            <div class="h-64 md:h-80 w-full relative">
+                <img id="modalCover" src="" class="w-full h-full object-cover">
+                <div class="absolute bottom-0 w-full bg-gradient-to-t from-pink-900/90 via-pink-900/50 to-transparent p-6 pt-20">
+                    <span id="modalCategory" class="text-xs font-bold bg-white text-pink-600 px-3 py-1 rounded-full mb-2 inline-block"></span>
+                    <h2 id="modalTitle" class="text-3xl font-bold text-white drop-shadow-md font-deco"></h2>
+                    <p id="modalAuthor" class="text-pink-100 mt-1 font-medium"></p>
+                </div>
+            </div>
+            <div class="p-6 md:p-8">
+                <div class="mb-8">
+                    <h3 class="text-xl font-bold text-pink-700 mb-3 flex items-center gap-2">
+                        <i data-lucide="file-text" class="w-5 h-5"></i>
+                        قصة الرواية
+                    </h3>
+                    <p id="modalDescription" class="text-gray-700 leading-relaxed text-lg whitespace-pre-line"></p>
+                </div>
+                <div class="border-t border-pink-100 pt-6">
+                    <a id="modalReadBtn" href="#" target="_blank" class="flex items-center justify-center gap-3 w-full bg-gradient-to-r from-pink-500 to-rose-500 text-white py-4 rounded-xl font-bold text-xl hover:from-pink-600 hover:to-rose-600 transition shadow-lg transform hover:-translate-y-1">
+                        <i data-lucide="book-open" class="w-6 h-6"></i>
+                        قراءة الرواية كاملة (PDF)
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // رابط ملفك بصيغة CSV
+        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQroSmC0_KFPc19QWPzhaMRp8V16m2oVTBOloGJMofxw15Scq1YzomQj-So8e_E1IopP1VLyyh4v95Z/pub?output=csv"; 
+
+        let novels = [];
+        let searchTerm = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDataFromSheet();
+            lucide.createIcons();
+        });
+
+        function loadDataFromSheet() {
+            Papa.parse(SHEET_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    novels = results.data;
+                    document.getElementById('loadingState').classList.add('hidden');
+                    document.getElementById('novelsGrid').classList.remove('hidden');
+                    renderNovels();
+                },
+                error: function(err) {
+                    document.getElementById('loadingState').innerHTML = "<p class='text-red-500'>فشل تحميل البيانات. تأكد من إعدادات الجدول.</p>";
+                }
+            });
+        }
+
+        function renderNovels() {
+            const grid = document.getElementById('novelsGrid');
+            const empty = document.getElementById('emptyState');
+            
+            // تصفية النتائج: البحث + التأكد من أن الرواية لها عنوان (لتجنب الأسطر الفارغة)
+            const filtered = novels.filter(n => 
+                n.title && n.title.trim() !== "" && 
+                n.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                grid.innerHTML = filtered.map((novel, index) => `
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:shadow-pink-100 transition duration-300 border border-pink-100 flex flex-col h-full relative group cursor-pointer" onclick="openDetails(${index})">
+                        <div class="h-56 overflow-hidden relative bg-gray-200">
+                            <img src="${novel.cover || 'https://via.placeholder.com/400x600?text=No+Cover'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/400x600?text=No+Cover'">
+                            <div class="absolute bottom-0 w-full bg-gradient-to-t from-pink-900/80 to-transparent p-4">
+                                 <span class="text-white text-xs bg-pink-500 px-2 py-1 rounded-full mb-1 inline-block">${novel.category || 'عام'}</span>
+                                 <h3 class="font-bold text-lg text-white leading-tight font-deco">${novel.title}</h3>
+                            </div>
+                        </div>
+                        <div class="p-4 flex-1 flex flex-col justify-between">
+                            <div>
+                                <p class="text-gray-500 text-sm mb-2">✍️ ${novel.author || 'غير معروف'}</p>
+                                <p class="text-gray-600 text-sm line-clamp-3 mb-4">${novel.description || 'لا يوجد وصف...'}</p>
+                            </div>
+                            <button class="w-full bg-pink-50 text-pink-700 py-2 rounded-lg font-bold hover:bg-pink-100 transition flex items-center justify-center gap-2">
+                                <i data-lucide="eye" class="w-4 h-4"></i> عرض التفاصيل
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            }
+        }
+
+        function openDetails(index) {
+            const filtered = novels.filter(n => n.title && n.title.trim() !== "" && n.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            const novel = filtered[index];
+            
+            if(!novel) return;
+            document.getElementById('modalTitle').innerText = novel.title;
+            document.getElementById('modalAuthor').innerText = `بقلم: ${novel.author}`;
+            document.getElementById('modalCategory').innerText = novel.category;
+            document.getElementById('modalDescription').innerText = novel.description || "لا يوجد وصف.";
+            document.getElementById('modalCover').src = novel.cover || 'https://via.placeholder.com/400x600?text=Cover';
+            
+            // التأكد من وجود رابط PDF
+            const pdfBtn = document.getElementById('modalReadBtn');
+            if (novel.pdfLink) {
+                pdfBtn.href = novel.pdfLink;
+                pdfBtn.style.display = 'flex';
+            } else {
+                pdfBtn.style.display = 'none';
+            }
+
+            document.getElementById('detailsModal').classList.replace('hidden', 'flex');
+        }
+        
+        function closeDetailsModal() { document.getElementById('detailsModal').classList.replace('flex', 'hidden'); }
+        function handleSearch(val) { searchTerm = val; renderNovels(); }
+    </script>
 </body>
 </html>
