@@ -2,419 +2,409 @@
 <html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مَكْتَبَةُ مَارِي 🦋🎀</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f0f0f">
+    <title>YS Cinema</title>
     
     <!-- الخطوط -->
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Great+Vibes&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;700;900&family=Cairo:wght@300;400;700;900&family=Reem+Kufi:wght@700&display=swap" rel="stylesheet">
     
-    <!-- المكاتب -->
+    <!-- المكتبات -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
-    <!-- إعدادات Tailwind للوضع الليلي -->
     <script>
         tailwind.config = {
             darkMode: 'class',
             theme: {
-                extend: { 
-                    fontFamily: { 
-                        sans: ['Tajawal', 'sans-serif'],
-                        script: ['"Great Vibes"', 'cursive'],
-                        deco: ['"Amiri"', 'serif'],
-                    },
-                    colors: {
-                        primary: '#db2777',
-                        secondary: '#fce7f3',
-                        darkBg: '#1a1025', // لون خلفية الوضع الليلي
-                        darkCard: '#2d1b36',
-                    }
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'sans-serif'], en: ['Outfit', 'sans-serif'], deco: ['Reem Kufi', 'sans-serif'] },
+                    colors: { brand: { red: '#E50914', dark: '#0f0f0f', gray: '#1a1a1a' } },
+                    animation: { 'slide-up': 'slideUp 0.5s ease-out' },
+                    keyframes: { slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } } }
                 }
             }
         }
     </script>
+    
     <style>
-        body { font-family: 'Tajawal', sans-serif; transition: background-color 0.3s, color 0.3s; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .category-btn.active { background-color: #db2777; color: white; border-color: #db2777; }
+        body { background-color: #0f0f0f !important; color: #e5e5e5; min-height: 100vh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .cat-btn { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 6px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; transition: 0.3s; white-space: nowrap; }
+        .cat-btn.active { background: #E50914; border-color: #E50914; color: white; }
+        .ys-logo { font-family: 'Reem Kufi', sans-serif; letter-spacing: -2px; }
+        .nav-tab { @apply flex-1 text-center py-3 rounded-lg font-bold text-gray-400 transition-all duration-300 border border-transparent cursor-pointer; }
+        .nav-tab:hover { @apply bg-white/5 text-white; }
+        .nav-tab.active-tab { @apply bg-brand-red text-white shadow-lg shadow-red-900/30; }
         
-        /* تأثيرات الوضع الليلي للأزرار */
-        .dark .category-btn.active { background-color: #be185d; border-color: #be185d; }
-        .dark .category-btn:not(.active) { background-color: #2d1b36; color: #fce7f3; border-color: #4a3055; }
+        .season-btn { @apply px-4 py-2 rounded-lg bg-[#262626] text-gray-400 border border-transparent hover:bg-[#333] transition whitespace-nowrap text-sm font-bold; }
+        .season-btn.active-season { @apply bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]; }
+        .episode-btn { @apply w-full flex justify-between items-center p-3 rounded-lg bg-[#1a1a1a] border border-white/5 hover:bg-[#2a2a2a] transition group cursor-pointer; }
+        .episode-btn:hover span { @apply text-white; }
+        .episode-btn i { @apply text-gray-500 group-hover:text-brand-red transition; }
+        
+        :root { --plyr-color-main: #E50914; } .plyr { border-radius: 8px; }
     </style>
 </head>
 
-<body class="min-h-screen bg-pink-50 text-gray-800 dark:bg-darkBg dark:text-pink-100 relative selection:bg-pink-200">
+<body class="flex flex-col pt-[30px]">
 
-    <!-- الرأس -->
-    <header class="bg-gradient-to-r from-pink-600 to-rose-500 dark:from-pink-900 dark:to-purple-900 text-white shadow-lg sticky top-0 z-40 transition-colors duration-300">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-pink-200">
-                        <span class="font-script text-3xl text-pink-600 pt-1 pr-1 font-bold">My</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="text-3xl font-deco font-bold tracking-wide text-white drop-shadow-md">مَكْتَبَةُ مَارِي</h1>
-                        <span class="bg-white/20 px-2 py-1 rounded-full text-xl shadow-sm border border-white/10">🦋🎀</span>
-                    </div>
+    <nav class="fixed top-[30px] w-full z-50 bg-[#0f0f0f]/90 backdrop-blur-md border-b border-white/5 shadow-lg">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
+                <div class="flex font-deco font-black text-4xl ys-logo" dir="ltr">
+                    <span class="text-white">Y</span><span class="text-[#E50914]">S</span>
                 </div>
+                <span class="text-white font-en font-bold text-xl pt-1 tracking-wide">CINEMA</span>
+            </div>
+            <button class="text-white hover:text-brand-red transition"><i data-lucide="bell" class="w-6 h-6"></i></button>
+        </div>
+    </nav>
 
-                <!-- أزرار التحكم العلوية -->
-                <div class="flex gap-3">
-                    <!-- زر الوضع الليلي -->
-                    <button onclick="toggleDarkMode()" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shadow-sm" title="الوضع الليلي">
-                        <i data-lucide="moon" class="w-6 h-6 dark:hidden"></i>
-                        <i data-lucide="sun" class="w-6 h-6 hidden dark:block text-yellow-300"></i>
-                    </button>
-                    <!-- زر المفضلة -->
-                    <button onclick="filterFavorites()" id="favFilterBtn" class="p-2 bg-white/20 rounded-full hover:bg-white/30 transition shadow-sm" title="المفضلة">
-                        <i data-lucide="heart" class="w-6 h-6 fill-current"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- البحث -->
-            <div class="mt-4 relative max-w-xl mx-auto">
-                <input type="text" placeholder="ابحث عن رواية..." 
-                    class="w-full pr-10 pl-4 py-2 rounded-full text-gray-800 border-2 border-pink-300 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-200 dark:bg-darkCard dark:text-white dark:border-purple-500"
-                    oninput="handleSearch(this.value)">
-                <i data-lucide="search" class="absolute right-3 top-2.5 text-pink-400 w-5 h-5"></i>
-            </div>
+    <header id="heroSection" class="relative h-[60vh] w-full mt-4 hidden">
+        <div class="absolute inset-0">
+            <img id="heroImage" src="" class="w-full h-full object-cover">
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/60 to-transparent"></div>
+        </div>
+        <div class="absolute bottom-0 w-full px-4 pb-12 z-10 flex flex-col items-center text-center animate-slide-up">
+            <span id="heroBadge" class="bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg shadow-red-600/40">عرض مميز</span>
+            <h1 id="heroTitle" class="text-3xl md:text-5xl font-black text-white mb-3 font-en leading-tight drop-shadow-xl w-full"></h1>
+            <p id="heroDesc" class="text-gray-300 text-sm max-w-lg line-clamp-2 leading-relaxed opacity-90 mb-4"></p>
+            <button onclick="openHeroDetails()" class="bg-white text-black hover:bg-gray-200 px-8 py-2.5 rounded-full font-bold flex items-center gap-2 transition transform hover:scale-105">
+                <i data-lucide="play-circle" class="w-5 h-5"></i> المشاهدة
+            </button>
         </div>
     </header>
 
-    <!-- قسم الاقتباسات (جديد) -->
-    <div class="bg-white dark:bg-darkCard border-b border-pink-100 dark:border-purple-900 py-3">
-        <div class="container mx-auto px-4 text-center">
-            <p id="quoteDisplay" class="text-pink-600 dark:text-pink-300 font-deco text-lg italic animate-fade-in">
-                "القراءة هي أن تذهب بعقلك ومشاعرك خارج حدود مكانك وزمانك."
-            </p>
-        </div>
-    </div>
-
-    <!-- المحتوى الرئيسي -->
-    <div class="container mx-auto px-4 py-6 pb-20">
-        
-        <!-- سلايدر أحدث الإضافات (جديد) -->
-        <div id="featuredSection" class="mb-8 hidden">
-            <h2 class="text-2xl font-bold text-pink-700 dark:text-pink-400 mb-4 flex items-center gap-2">
-                <i data-lucide="flame" class="w-6 h-6"></i> أحدث الإضافات
-            </h2>
-            <div id="featuredContainer" class="flex gap-4 overflow-x-auto pb-4 no-scrollbar snap-x">
-                <!-- يتم التعبئة تلقائياً -->
+    <main class="container mx-auto px-4 py-8 min-h-screen">
+        <div class="flex flex-col gap-4 mb-8">
+            <div class="flex bg-[#1a1a1a] p-1.5 rounded-xl border border-white/5">
+                <button id="btn-movies" class="nav-tab active-tab" onclick="switchTab('movies')">
+                    <span class="flex items-center justify-center gap-2"><i data-lucide="film" class="w-4 h-4"></i> أفلام</span>
+                </button>
+                <button id="btn-series" class="nav-tab" onclick="switchTab('series')">
+                    <span class="flex items-center justify-center gap-2"><i data-lucide="tv" class="w-4 h-4"></i> مسلسلات</span>
+                </button>
+                <button id="btn-all" class="nav-tab" onclick="switchTab('all')">
+                    <span class="flex items-center justify-center gap-2"><i data-lucide="layout-grid" class="w-4 h-4"></i> المكتبة</span>
+                </button>
             </div>
-        </div>
-
-        <!-- شريط الأقسام -->
-        <div id="categoriesContainer" class="flex gap-3 overflow-x-auto pb-4 mb-2 no-scrollbar whitespace-nowrap"></div>
-
-        <!-- حالة التحميل -->
-        <div id="loadingState" class="text-center py-20">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mb-4"></div>
-            <p class="text-pink-600 dark:text-pink-400 text-lg">جاري جلب الروايات...</p>
-        </div>
-
-        <!-- شبكة الروايات -->
-        <div id="novelsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
-
-        <!-- حالة فارغة -->
-        <div id="emptyState" class="hidden text-center py-20 text-gray-400 dark:text-gray-500">
-            <p class="text-xl text-pink-400 dark:text-pink-600 font-bold font-deco">لا توجد نتائج 🦋</p>
-        </div>
-    </div>
-
-    <!-- تذييل الصفحة (Footer) - طلب رواية -->
-    <footer class="bg-pink-100 dark:bg-darkCard py-6 mt-10 text-center border-t border-pink-200 dark:border-purple-900">
-        <p class="text-pink-800 dark:text-pink-200 mb-2 font-bold">لم تجد روايتك المفضلة؟</p>
-        <a href="https://docs.google.com/forms" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition shadow-md">
-            <i data-lucide="edit-3" class="w-4 h-4"></i> اطلب رواية
-        </a>
-        <p class="text-xs text-pink-400 mt-4 font-script text-xl">Made with love for Mary's Library</p>
-    </footer>
-
-    <!-- نافذة التفاصيل والقراءة -->
-    <div id="detailsModal" class="fixed inset-0 bg-pink-900/60 dark:bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50" onclick="closeDetailsModal()">
-        <div class="bg-white dark:bg-darkCard rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-y-auto no-scrollbar shadow-2xl relative border-2 border-pink-100 dark:border-purple-900 flex flex-col md:flex-row" onclick="event.stopPropagation()">
             
-            <button onclick="closeDetailsModal()" class="absolute top-4 left-4 bg-white/80 dark:bg-black/50 p-2 rounded-full hover:bg-white z-10 shadow-md text-gray-800 dark:text-white">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
-
-            <!-- القسم الأيمن: المعلومات -->
-            <div class="w-full md:w-1/3 relative">
-                <img id="modalCover" src="" class="w-full h-64 md:h-full object-cover">
-                <div class="absolute bottom-0 w-full bg-gradient-to-t from-pink-900/90 to-transparent p-6 pt-20 md:hidden">
-                    <h2 id="modalTitleMobile" class="text-2xl font-bold text-white drop-shadow-md font-deco"></h2>
-                </div>
+            <div class="relative search-box rounded-xl bg-[#1a1a1a] border border-[#333]">
+                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none"><i data-lucide="search" class="w-5 h-5 text-gray-500"></i></div>
+                <input type="text" id="mainSearchInput" class="w-full bg-transparent text-white pl-4 pr-10 py-3 rounded-xl focus:outline-none placeholder-gray-600 text-sm font-bold" placeholder="ابحث..." oninput="handleSearch(this.value)">
             </div>
+        </div>
 
-            <!-- القسم الأيسر: التفاصيل والقراءة -->
-            <div class="w-full md:w-2/3 p-6 md:p-8 flex flex-col">
-                <div class="hidden md:block mb-4">
-                    <span id="modalCategory" class="text-xs font-bold bg-pink-100 dark:bg-purple-900 text-pink-600 dark:text-pink-200 px-3 py-1 rounded-full mb-2 inline-block"></span>
-                    <h2 id="modalTitle" class="text-3xl font-bold text-pink-800 dark:text-white font-deco"></h2>
-                    <p id="modalAuthor" class="text-gray-500 dark:text-gray-400 mt-1"></p>
-                </div>
+        <div class="flex items-center gap-3 mb-6">
+            <h3 class="text-white font-bold whitespace-nowrap pl-2 border-l-2 border-brand-red ml-2">التصنيفات</h3>
+            <div class="flex gap-2 overflow-x-auto hide-scroll pb-1 w-full" id="categoriesContainer"></div>
+        </div>
 
-                <div class="mb-6 flex-1 overflow-y-auto max-h-40 md:max-h-60">
-                    <h3 class="text-lg font-bold text-pink-700 dark:text-pink-400 mb-2 flex items-center gap-2">
-                        <i data-lucide="file-text" class="w-5 h-5"></i> القصة
-                    </h3>
-                    <p id="modalDescription" class="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line"></p>
-                </div>
+        <h2 id="sectionTitle" class="text-xl font-bold text-white font-sans mb-4">الأفلام</h2>
+        
+        <div id="loading" class="flex justify-center py-20">
+            <div class="w-10 h-10 border-4 border-brand-red border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        
+        <div id="moviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
+        <div id="emptyMessage" class="hidden flex-col items-center justify-center py-20 opacity-50 text-center"><p class="text-gray-400 font-bold">لا توجد نتائج</p></div>
+    </main>
 
-                <div class="flex gap-3 mt-auto pt-4 border-t border-pink-100 dark:border-purple-800">
-                    <!-- زر القراءة (يفتح Iframe) -->
-                    <button id="readNowBtn" onclick="toggleReadMode()" class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-600 to-rose-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition">
-                        <i data-lucide="book-open" class="w-5 h-5"></i> اقرأ الآن
-                    </button>
-                    <!-- زر المشاركة -->
-                    <button onclick="shareNovel()" class="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-white rounded-xl hover:bg-gray-200 transition" title="مشاركة">
-                        <i data-lucide="share-2" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                
-                <!-- منطقة القراءة (Iframe) -->
-                <div id="readerContainer" class="hidden mt-4 h-96 w-full bg-gray-100 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-300 relative">
-                    <iframe id="pdfFrame" src="" class="w-full h-full" frameborder="0"></iframe>
-                    <button onclick="toggleReadMode()" class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded shadow">إغلاق القراءة</button>
-                </div>
+    <!-- Modal التفاصيل -->
+    <div id="detailsModal" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-[#141414] w-full max-w-5xl rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row max-h-[90vh] shadow-2xl relative animate-slide-up">
+            <button onclick="closeModal()" class="absolute top-4 right-4 z-20 bg-black/50 p-2 rounded-full text-white hover:bg-white/20 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="w-full md:w-1/3 h-64 md:h-auto relative shrink-0">
+                <img id="modalPoster" src="" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent md:hidden"></div>
             </div>
+            <div class="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col text-right">
+                <h2 id="modalTitle" class="text-2xl md:text-3xl font-bold text-white mb-2 font-en"></h2>
+                <div class="flex justify-end items-center gap-3 text-xs font-bold text-gray-400 mb-4">
+                    <span id="modalYear" class="border border-white/20 px-2 py-1 rounded"></span>
+                    <span id="modalCategory" class="text-brand-red bg-red-900/10 px-2 py-1 rounded"></span>
+                </div>
+                <p id="modalDesc" class="text-gray-300 text-sm leading-relaxed mb-6 border-r-2 border-brand-red/50 pr-3 pl-2"></p>
+                <div id="actionArea" class="mt-auto space-y-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Player Modal -->
+    <div id="playerModal" class="fixed inset-0 z-[150] hidden bg-black flex flex-col">
+        <div class="flex justify-between items-center p-4 bg-black border-b border-white/10">
+            <button onclick="closePlayer()" class="text-white hover:text-brand-red transition"><i data-lucide="arrow-right" class="w-6 h-6"></i></button>
+            <span class="text-white font-bold truncate px-4" id="playerTitle"></span>
+        </div>
+        <div class="flex-1 flex items-center justify-center bg-black">
+            <div id="playerWrapper" class="w-full h-full max-h-screen"></div>
         </div>
     </div>
 
     <script>
-        // 🔗 رابط CSV (نفس رابطك)
-        const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQroSmC0_KFPc19QWPzhaMRp8V16m2oVTBOloGJMofxw15Scq1YzomQj-So8e_E1IopP1VLyyh4v95Z/pub?output=csv"; 
-        
-        // اقتباسات عشوائية
-        const quotes = [
-            "القراءة هي أن تذهب بعقلك ومشاعرك خارج حدود مكانك وزمانك.",
-            "الكتب هي ثروة العالم المخزونة وأفضل إرث للأجيال.",
-            "قارئ اليوم هو قائد الغد.",
-            "بيت بلا كتب، جسد بلا روح.",
-            "أمة تقرأ، أمة ترقى."
-        ];
+        // الروابط
+        const MOVIES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn9dyAUgn8HOEIsOE8O9y_UJ1CJ9IuSdGIFpSawVta28mee1fFTKqoKZ2vo2t8nCPh0vUCduSZ8KxP/pub?output=csv";
+        const SERIES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRHXwAAqg5ILlt_dXvgQ1akSQOWxNIe2Tz-FvTRMA_ajtW14q68fm1pb-EyxNj9AOXBacAxAOnx86cx/pub?output=csv"; 
 
-        let novels = [];
-        let searchTerm = '';
-        let currentCategory = 'الكل';
-        let favorites = JSON.parse(localStorage.getItem('maryFavs')) || [];
-        let showingFavorites = false;
-        let currentNovelLink = ''; // لحفظ رابط الرواية الحالية
+        let moviesOnly = [];
+        let seriesOnly = [];
+        let currentViewData = []; 
+        let currentTab = 'movies';
+        let heroMovie = null;
+        let plyrInstance = null;
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDataFromSheet();
-            checkDarkMode();
-            displayRandomQuote();
-            lucide.createIcons();
-        });
+        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); fetchData(); });
 
-        // 1. تحميل البيانات
-        function loadDataFromSheet() {
-            Papa.parse(SHEET_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    novels = results.data.filter(n => n.title && n.title.trim() !== "");
-                    setupCategories();
-                    renderFeatured();
-                    document.getElementById('loadingState').classList.add('hidden');
-                    document.getElementById('novelsGrid').classList.remove('hidden');
-                    renderNovels();
-                },
-                error: () => document.getElementById('loadingState').innerHTML = "<p class='text-red-500'>فشل الاتصال بالمكتبة</p>"
-            });
-        }
-
-        // 2. عرض الاقتباس
-        function displayRandomQuote() {
-            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-            document.getElementById('quoteDisplay').innerText = `"${randomQuote}"`;
-        }
-
-        // 3. الوضع الليلي
-        function toggleDarkMode() {
-            document.documentElement.classList.toggle('dark');
-            const isDark = document.documentElement.classList.contains('dark');
-            localStorage.setItem('maryDarkMode', isDark);
-        }
-        function checkDarkMode() {
-            if (localStorage.getItem('maryDarkMode') === 'true') {
-                document.documentElement.classList.add('dark');
-            }
-        }
-
-        // 4. نظام المفضلة
-        function toggleFavorite(title, event) {
-            event.stopPropagation();
-            if (favorites.includes(title)) {
-                favorites = favorites.filter(t => t !== title);
-            } else {
-                favorites.push(title);
-            }
-            localStorage.setItem('maryFavs', JSON.stringify(favorites));
-            renderNovels(); // تحديث الأيقونات
-        }
-        function filterFavorites() {
-            showingFavorites = !showingFavorites;
-            const btn = document.getElementById('favFilterBtn');
-            btn.classList.toggle('bg-pink-500', showingFavorites);
-            btn.classList.toggle('text-white', showingFavorites);
-            renderNovels();
-        }
-
-        // 5. الأقسام والسلايدر
-        function setupCategories() {
-            const container = document.getElementById('categoriesContainer');
-            const categories = ['الكل', ...new Set(novels.map(n => n.category).filter(c => c))];
-            container.innerHTML = categories.map(cat => `
-                <button onclick="filterByCategory('${cat}')" class="category-btn ${cat === 'الكل' ? 'active' : ''} px-6 py-2 rounded-full border border-pink-200 text-pink-700 dark:text-pink-300 font-bold bg-white dark:bg-darkCard hover:bg-pink-50 dark:hover:bg-gray-700 whitespace-nowrap shadow-sm">
-                    ${cat}
-                </button>
-            `).join('');
-        }
-        function renderFeatured() {
-            const container = document.getElementById('featuredContainer');
-            const featuredSection = document.getElementById('featuredSection');
-            // نأخذ أول 5 روايات كـ "جديدة"
-            const latest = novels.slice(0, 5);
-            
-            if (latest.length > 0) {
-                featuredSection.classList.remove('hidden');
-                container.innerHTML = latest.map(novel => `
-                    <div class="snap-start shrink-0 w-40 cursor-pointer group" onclick="openDetails('${novel.title}')">
-                        <div class="relative h-56 rounded-xl overflow-hidden mb-2 shadow-md">
-                            <img src="${novel.cover}" class="w-full h-full object-cover group-hover:scale-110 transition duration-500">
-                            <span class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow">جديد</span>
-                        </div>
-                        <h3 class="font-bold text-sm text-gray-800 dark:text-gray-200 truncate">${novel.title}</h3>
-                    </div>
-                `).join('');
-            }
-        }
-
-        // 6. العرض الرئيسي
-        function filterByCategory(cat) {
-            currentCategory = cat;
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.innerText === cat);
-            });
-            renderNovels();
-        }
-
-        function renderNovels() {
-            const grid = document.getElementById('novelsGrid');
-            const empty = document.getElementById('emptyState');
-            
-            const filtered = novels.filter(n => {
-                const search = n.title.toLowerCase().includes(searchTerm.toLowerCase());
-                const cat = currentCategory === 'الكل' || n.category === currentCategory;
-                const fav = !showingFavorites || favorites.includes(n.title);
-                return search && cat && fav;
-            });
-
-            if (filtered.length === 0) {
-                grid.innerHTML = '';
-                empty.classList.remove('hidden');
-            } else {
-                empty.classList.add('hidden');
-                grid.innerHTML = filtered.map((novel, index) => {
-                    const isFav = favorites.includes(novel.title);
-                    // تحديد إذا كانت الرواية "جديدة" (أول 5 روايات)
-                    const isNew = index < 5 && currentCategory === 'الكل' && !searchTerm;
-                    
-                    return `
-                    <div class="bg-white dark:bg-darkCard rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:shadow-pink-100 dark:hover:shadow-purple-900 transition duration-300 border border-pink-100 dark:border-purple-900 flex flex-col h-full relative group cursor-pointer" onclick="openDetails('${novel.title}')">
-                        
-                        <div class="h-64 overflow-hidden relative bg-gray-200 dark:bg-gray-800">
-                            <img src="${novel.cover || 'https://via.placeholder.com/400x600?text=Cover'}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" onerror="this.src='https://via.placeholder.com/400x600?text=No+Cover'">
-                            <div class="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
-                                 <span class="text-white text-xs bg-pink-500 px-2 py-1 rounded-full mb-1 inline-block">${novel.category || 'عام'}</span>
-                            </div>
-                            <!-- زر المفضلة -->
-                            <button onclick="toggleFavorite('${novel.title}', event)" class="absolute top-2 left-2 p-2 rounded-full bg-white/80 dark:bg-black/50 hover:scale-110 transition shadow-sm">
-                                <i data-lucide="heart" class="w-5 h-5 ${isFav ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-300'}"></i>
-                            </button>
-                            ${isNew ? '<span class="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow">جديد</span>' : ''}
-                        </div>
-                        
-                        <div class="p-4 flex-1 flex flex-col justify-between">
-                            <div>
-                                <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-1 font-deco">${novel.title}</h3>
-                                <p class="text-gray-500 dark:text-gray-400 text-sm mb-3">✍️ ${novel.author || 'مجهول'}</p>
-                            </div>
-                            <button class="w-full bg-pink-50 dark:bg-gray-700 text-pink-700 dark:text-pink-300 py-2 rounded-lg font-bold hover:bg-pink-100 dark:hover:bg-gray-600 transition flex items-center justify-center gap-2">
-                                <i data-lucide="eye" class="w-4 h-4"></i> التفاصيل
-                            </button>
-                        </div>
-                    </div>
-                `}).join('');
-                lucide.createIcons();
-            }
-        }
-
-        // 7. التفاصيل والقراءة
-        function openDetails(title) {
-            const novel = novels.find(n => n.title === title);
-            if(!novel) return;
-
-            document.getElementById('modalTitle').innerText = novel.title;
-            document.getElementById('modalTitleMobile').innerText = novel.title;
-            document.getElementById('modalAuthor').innerText = `بقلم: ${novel.author}`;
-            document.getElementById('modalCategory').innerText = novel.category;
-            document.getElementById('modalDescription').innerText = novel.description || "لا يوجد وصف.";
-            document.getElementById('modalCover').src = novel.cover;
-            
-            // تحويل رابط درايف ليعمل في Iframe
-            let link = novel.pdfLink;
-            if (link && link.includes('drive.google.com') && link.includes('/view')) {
-                link = link.replace('/view', '/preview');
-            }
-            currentNovelLink = link;
-
-            // إخفاء القارئ عند الفتح
-            document.getElementById('readerContainer').classList.add('hidden');
-            document.getElementById('pdfFrame').src = "";
-            
-            document.getElementById('detailsModal').classList.replace('hidden', 'flex');
-        }
-
-        function toggleReadMode() {
-            const container = document.getElementById('readerContainer');
-            const frame = document.getElementById('pdfFrame');
-            
-            if (container.classList.contains('hidden')) {
-                if(currentNovelLink) {
-                    frame.src = currentNovelLink;
-                    container.classList.remove('hidden');
-                } else {
-                    alert("لا يوجد رابط لهذه الرواية");
+        function fetchData() {
+            let loadedCount = 0;
+            const checkLoad = () => {
+                loadedCount++;
+                if (loadedCount === 2) {
+                    document.getElementById('loading').style.display = 'none';
+                    switchTab('movies'); 
                 }
-            } else {
-                container.classList.add('hidden');
-                frame.src = "";
-            }
+            };
+            Papa.parse(MOVIES_SHEET_URL, { download: true, header: true, skipEmptyLines: true, complete: res => { moviesOnly = res.data.reverse().map(i => ({...i, type: 'film'})); checkLoad(); } });
+            Papa.parse(SERIES_SHEET_URL, { download: true, header: true, skipEmptyLines: true, complete: res => { seriesOnly = res.data.reverse().map(i => ({...i, type: 'series'})); checkLoad(); } });
         }
 
-        function shareNovel() {
-            const title = document.getElementById('modalTitle').innerText;
-            if (navigator.share) {
-                navigator.share({
-                    title: `اقرأ رواية ${title} في مكتبة ماري`,
-                    text: `أنصحك بقراءة رواية "${title}" الممتعة!`,
-                    url: window.location.href
-                });
+        function switchTab(tabName) {
+            currentTab = tabName;
+            document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active-tab'));
+            document.getElementById(`btn-${tabName}`).classList.add('active-tab');
+
+            if (tabName === 'movies') {
+                currentViewData = [...moviesOnly];
+                document.getElementById('sectionTitle').innerText = 'الأفلام';
+            } else if (tabName === 'series') {
+                currentViewData = [...seriesOnly];
+                document.getElementById('sectionTitle').innerText = 'المسلسلات';
             } else {
-                alert("تم نسخ رابط الموقع!"); // هنا يمكن إضافة كود نسخ الرابط
+                currentViewData = [...moviesOnly, ...seriesOnly];
+                document.getElementById('sectionTitle').innerText = 'المكتبة الشاملة';
             }
+
+            if(currentViewData.length > 0) setupHero(currentViewData[0]);
+            document.getElementById('mainSearchInput').value = '';
+            setupCategories(currentViewData);
+            renderContent(currentViewData);
         }
 
-        function closeDetailsModal() { document.getElementById('detailsModal').classList.replace('flex', 'hidden'); }
-        function handleSearch(val) { searchTerm = val; renderNovels(); }
+        function setupCategories(list) {
+            const categories = [...new Set(list.map(m => m.Category))].filter(Boolean);
+            const container = document.getElementById('categoriesContainer');
+            container.innerHTML = '<button class="cat-btn active" onclick="filterCategory(\'الكل\', this)">الكل</button>';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'cat-btn';
+                btn.innerText = cat;
+                btn.onclick = (e) => filterCategory(cat, e.target);
+                container.appendChild(btn);
+            });
+        }
+
+        function filterCategory(cat, btn) {
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if (cat === 'الكل') renderContent(currentViewData);
+            else renderContent(currentViewData.filter(m => m.Category === cat));
+        }
+
+        function renderContent(list) {
+            const grid = document.getElementById('moviesGrid');
+            const emptyMsg = document.getElementById('emptyMessage');
+            grid.innerHTML = '';
+            if (!list || list.length === 0) { emptyMsg.classList.remove('hidden'); emptyMsg.classList.add('flex'); return; }
+            emptyMsg.classList.add('hidden'); emptyMsg.classList.remove('flex');
+
+            list.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'group relative rounded-xl overflow-hidden cursor-pointer aspect-[2/3] bg-[#1a1a1a] transition hover:shadow-2xl hover:shadow-red-900/20';
+                card.onclick = () => openModal(item);
+                const badgeText = item.type === 'series' ? 'مسلسل' : 'فيلم';
+                const badgeColor = item.type === 'series' ? 'bg-blue-600' : 'bg-black/60 border border-white/20';
+                card.innerHTML = `
+                    <img src="${item.Cover}" loading="lazy" class="w-full h-full object-cover transition duration-500 group-hover:scale-110 group-hover:opacity-80">
+                    <span class="absolute top-2 right-2 ${badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-20 shadow">${badgeText}</span>
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center z-10">
+                        <i data-lucide="play-circle" class="w-12 h-12 text-white fill-brand-red/50"></i>
+                    </div>
+                    <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/90 to-transparent p-3 pt-12">
+                        <h3 class="text-white font-bold text-sm text-right leading-tight font-en truncate group-hover:text-brand-red transition">${item.Title}</h3>
+                        <div class="flex justify-between items-center mt-1">
+                            <span class="text-gray-400 text-[10px] truncate">${item.Year || ''}</span>
+                            <span class="text-gray-400 text-[10px] truncate bg-white/10 px-1 rounded">${item.Category || ''}</span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function setupHero(item) {
+            heroMovie = item;
+            document.getElementById('heroSection').classList.remove('hidden');
+            document.getElementById('heroImage').src = item.Cover;
+            document.getElementById('heroTitle').innerText = item.Title;
+            document.getElementById('heroDesc').innerText = item.Description;
+            const badge = document.getElementById('heroBadge');
+            if(item.type === 'series') {
+                badge.innerText = 'مسلسل مميز'; badge.className = 'bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
+            } else {
+                badge.innerText = 'فيلم مميز'; badge.className = 'bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
+            }
+        }
+        function openHeroDetails() { if(heroMovie) openModal(heroMovie); }
+
+        function openModal(item) {
+            const modal = document.getElementById('detailsModal');
+            document.getElementById('modalPoster').src = item.Cover;
+            document.getElementById('modalTitle').innerText = item.Title;
+            document.getElementById('modalCategory').innerText = item.Category;
+            document.getElementById('modalYear').innerText = item.Year;
+            document.getElementById('modalDesc').innerText = item.Description || "لا يوجد وصف";
+            
+            const actionArea = document.getElementById('actionArea');
+            actionArea.innerHTML = '';
+
+            if (item.type === 'film') {
+                const btn = document.createElement('button');
+                btn.className = 'w-full bg-brand-red text-white py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-red-700 transition shadow-lg shadow-red-900/20';
+                btn.innerHTML = 'مشاهدة الفيلم <i data-lucide="play" class="w-5 h-5"></i>';
+                btn.onclick = () => playVideo(item.Link, item.Title);
+                actionArea.appendChild(btn);
+            } else {
+                // استخدام دالة التحليل الجديدة
+                const seasons = parseSeriesText(item.Link);
+                if (Object.keys(seasons).length === 0) {
+                    actionArea.innerHTML = '<div class="text-center p-4 bg-white/5 rounded-lg text-red-400">لا توجد حلقات متاحة حالياً</div>';
+                } else {
+                    const seasonTabs = document.createElement('div');
+                    seasonTabs.className = 'flex gap-2 overflow-x-auto hide-scroll mb-4 border-b border-white/10 pb-3';
+                    
+                    const episodesList = document.createElement('div');
+                    episodesList.className = 'flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-2 custom-scroll';
+
+                    let firstSeason = true;
+                    // تكرار عبر المواسم
+                    for (const [seasonName, episodes] of Object.entries(seasons)) {
+                        const sBtn = document.createElement('button');
+                        sBtn.className = `season-btn ${firstSeason ? 'active-season' : ''}`;
+                        sBtn.innerText = seasonName;
+                        
+                        sBtn.onclick = () => {
+                            document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active-season'));
+                            sBtn.classList.add('active-season');
+                            renderEpisodes(episodes, episodesList, item.Title);
+                        };
+                        seasonTabs.appendChild(sBtn);
+                        if(firstSeason) {
+                            renderEpisodes(episodes, episodesList, item.Title);
+                            firstSeason = false;
+                        }
+                    }
+                    actionArea.appendChild(seasonTabs);
+                    actionArea.appendChild(episodesList);
+                }
+            }
+            modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // ===============================================
+        // دالة التحليل المحدثة (Fix for Invisible Chars)
+        // ===============================================
+        function parseSeriesText(text) {
+            if(!text) return {};
+            
+            // تقسيم النص مع دعم مختلف أنواع الأسطر الجديدة
+            const lines = text.split(/\r?\n/);
+            const seasons = {};
+            let currentSeason = 'الموسم 1';
+
+            lines.forEach(line => {
+                // تنظيف الخط: إزالة الأحرف المخفية (مثل علامات اتجاه النص) والمسافات الزائدة
+                // \u200B-\u200D هي مسافات صفرية، \uFEFF هي BOM، \u200E\u200F هي علامات RTL/LTR
+                line = line.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim();
+
+                if (!line) return; // تجاهل الأسطر الفارغة
+
+                // التحقق من وجود كلمة "الموسم"
+                if (line.includes('الموسم') || line.toLowerCase().includes('season')) {
+                    // تنظيف اسم الموسم (إزالة النقطتين أو المسافات من النهاية)
+                    currentSeason = line.replace(/[:-\s]+$/, ""); 
+                } 
+                // التحقق من وجود رابط
+                else if (line.includes('http')) {
+                    if (!seasons[currentSeason]) seasons[currentSeason] = [];
+                    
+                    let parts = line.split(/[:|]/); // الفاصل هو : أو |
+                    let epLink = "";
+                    let epName = "";
+
+                    // محاولة ذكية لفصل الرابط عن الاسم
+                    const linkIndex = parts.findIndex(p => p.includes('http'));
+                    
+                    if(linkIndex !== -1) {
+                        epLink = parts.slice(linkIndex).join(':').trim(); // تجميع الرابط مرة أخرى
+                        epName = parts.slice(0, linkIndex).join(' ').trim();
+                    } else {
+                        epLink = line;
+                    }
+
+                    // إذا لم يوجد اسم، نضع اسماً افتراضياً
+                    if(!epName || epName.length < 2) epName = `حلقة ${seasons[currentSeason].length + 1}`;
+
+                    seasons[currentSeason].push({ name: epName, link: epLink });
+                }
+            });
+            return seasons;
+        }
+
+        function renderEpisodes(episodes, container, seriesTitle) {
+            container.innerHTML = '';
+            episodes.forEach(ep => {
+                const btn = document.createElement('button');
+                btn.className = 'episode-btn';
+                btn.innerHTML = `<span class="font-bold text-gray-400 text-sm">${ep.name}</span><i data-lucide="play-circle" class="w-5 h-5"></i>`;
+                btn.onclick = () => playVideo(ep.link, `${seriesTitle} - ${ep.name}`);
+                container.appendChild(btn);
+            });
+            lucide.createIcons();
+        }
+
+        function closeModal() { document.getElementById('detailsModal').classList.add('hidden'); }
+        function closePlayer() { 
+            document.getElementById('playerModal').classList.add('hidden'); 
+            if(plyrInstance) plyrInstance.destroy(); 
+            document.getElementById('playerWrapper').innerHTML = ''; 
+        }
+
+        function playVideo(source, title) {
+            closeModal();
+            document.getElementById('playerModal').classList.remove('hidden');
+            document.getElementById('playerTitle').innerText = title;
+            const wrapper = document.getElementById('playerWrapper');
+            wrapper.innerHTML = `<video id="player" class="plyr" playsinline controls crossorigin></video>`;
+            const video = document.getElementById('player');
+            if (Hls.isSupported() && source.includes('.m3u8')) {
+                const hls = new Hls(); hls.loadSource(source); hls.attachMedia(video);
+            } else { video.src = source; }
+            plyrInstance = new Plyr(video, { controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'fullscreen'] });
+            plyrInstance.play();
+        }
+
+        function handleSearch(query) {
+            if(!query) { renderContent(currentViewData); return; }
+            const filtered = currentViewData.filter(m => m.Title.toLowerCase().includes(query.toLowerCase()));
+            renderContent(filtered);
+        }
     </script>
 </body>
 </html>
