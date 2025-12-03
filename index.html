@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0f0f0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <title>YS Cinema</title>
     
     <!-- الخطوط -->
@@ -14,6 +16,8 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
+
+    <!-- مشغل الفيديو -->
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
 
@@ -23,9 +27,17 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Cairo', 'sans-serif'], en: ['Outfit', 'sans-serif'], deco: ['Reem Kufi', 'sans-serif'] },
-                    colors: { brand: { red: '#E50914', dark: '#0f0f0f', gray: '#1a1a1a' } },
-                    animation: { 'slide-up': 'slideUp 0.5s ease-out' },
-                    keyframes: { slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } } }
+                    colors: { 
+                        brand: { red: '#E50914', dark: '#0f0f0f', gray: '#1a1a1a' } 
+                    },
+                    animation: {
+                        'slide-up': 'slideUp 0.5s ease-out',
+                        'loading-bar': 'loadingBar 2s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                        loadingBar: { '0%': { transform: 'translateX(-100%)' }, '100%': { transform: 'translateX(100%)' } }
+                    }
                 }
             }
         }
@@ -33,31 +45,170 @@
     
     <style>
         body { background-color: #0f0f0f !important; color: #e5e5e5; min-height: 100vh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .cat-btn { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 6px 20px; border-radius: 8px; font-size: 13px; font-weight: bold; transition: 0.3s; white-space: nowrap; }
+        
+        /* شاشة الترحيب */
+        #splashScreen {
+            position: fixed; inset: 0; z-index: 9999;
+            background-color: #0f0f0f;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s ease-out, visibility 0.8s;
+        }
+        
+        /* شريط الأخبار */
+        .ticker-wrap {
+            position: fixed; top: 0; width: 100%; background: #E50914; z-index: 60;
+            height: 30px; line-height: 30px; overflow: hidden; white-space: nowrap;
+        }
+        .ticker { display: inline-block; padding-left: 100%; animation: ticker 20s linear infinite; color: white; font-weight: bold; font-size: 12px; }
+        @keyframes ticker { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(100%, 0, 0); } }
+
+        /* الأزرار والفلاتر */
+        .cat-btn {
+            background: #1a1a1a; border: 1px solid #333; color: #ccc;
+            padding: 6px 20px; border-radius: 8px; font-size: 13px; font-weight: bold;
+            transition: 0.3s; white-space: nowrap;
+        }
         .cat-btn.active { background: #E50914; border-color: #E50914; color: white; }
-        .ys-logo { font-family: 'Reem Kufi', sans-serif; letter-spacing: -2px; }
-        .nav-tab { @apply flex-1 text-center py-3 rounded-lg font-bold text-gray-400 transition-all duration-300 border border-transparent cursor-pointer; }
+
+        .hide-scroll::-webkit-scrollbar { display: none; }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #333; border-radius: 4px; }
+        
+        /* === تنسيق الشعار YS === */
+        .ys-logo {
+            font-family: 'Reem Kufi', sans-serif;
+            letter-spacing: -2px;
+        }
+        .ys-logo span:first-child { color: #ffffff; text-shadow: 0 0 15px rgba(255,255,255,0.4); }
+        .ys-logo span:last-child { color: #E50914; text-shadow: 0 0 15px rgba(229, 9, 20, 0.6); }
+
+        /* === تنسيق تبويبات التنقل === */
+        .nav-tab {
+            @apply flex-1 text-center py-3 rounded-lg font-bold text-gray-400 transition-all duration-300 border border-transparent;
+        }
         .nav-tab:hover { @apply bg-white/5 text-white; }
-        .nav-tab.active-tab { @apply bg-brand-red text-white shadow-lg shadow-red-900/30; }
-        
-        .season-btn { @apply px-4 py-2 rounded-lg bg-[#262626] text-gray-400 border border-transparent hover:bg-[#333] transition whitespace-nowrap text-sm font-bold; }
-        .season-btn.active-season { @apply bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.3)]; }
-        .episode-btn { @apply w-full flex justify-between items-center p-3 rounded-lg bg-[#1a1a1a] border border-white/5 hover:bg-[#2a2a2a] transition group cursor-pointer; }
-        .episode-btn:hover span { @apply text-white; }
-        .episode-btn i { @apply text-gray-500 group-hover:text-brand-red transition; }
-        
-        :root { --plyr-color-main: #E50914; } .plyr { border-radius: 8px; }
+        .nav-tab.active-tab {
+            @apply bg-brand-red text-white shadow-lg shadow-red-900/30;
+        }
+
+        /* حقل البحث */
+        .search-box {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+        .search-box:focus-within {
+            border-color: #E50914;
+            box-shadow: 0 0 10px rgba(229, 9, 20, 0.1);
+        }
+
+        /* === تصميم جديد للمسلسلات والحلقات === */
+        .season-tabs-container {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 16px;
+        }
+
+        .season-btn {
+            background: transparent;
+            color: #9ca3af;
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .season-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.1);
+        }
+
+        .season-btn.active-season {
+            background: #E50914;
+            color: white;
+            border-color: #E50914;
+            box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);
+        }
+
+        .episode-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .episode-card:hover {
+            background: #262626;
+            transform: translateY(-2px);
+            border-color: rgba(255,255,255,0.15);
+        }
+
+        .episode-title {
+            font-weight: bold;
+            color: #e5e5e5;
+            font-size: 14px;
+        }
+
+        .play-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+        }
+
+        .episode-card:hover .play-icon {
+            background: #E50914;
+            transform: scale(1.1);
+        }
+
+        :root { --plyr-color-main: #E50914; }
+        .plyr { border-radius: 8px; }
     </style>
 </head>
 
 <body class="flex flex-col pt-[30px]">
 
+    <!-- 0. شاشة الترحيب (Splash Screen) -->
+    <div id="splashScreen">
+        <div class="flex items-center gap-3 scale-150 animate-pulse mb-8">
+            <div class="flex font-deco font-black text-6xl ys-logo" dir="ltr">
+                <span>Y</span><span>S</span>
+            </div>
+            <span class="text-white font-en font-bold text-3xl pt-2 tracking-widest text-brand-red">CINEMA</span>
+        </div>
+        <div class="w-48 h-1 bg-gray-800 rounded-full overflow-hidden">
+            <div class="w-full h-full bg-brand-red animate-loading-bar"></div>
+        </div>
+    </div>
+
+    <!-- 1. شريط الأخبار -->
+    <div class="ticker-wrap">
+        <div class="ticker" id="newsTicker">🔥 وصل حديثاً: أحدث الأفلام والمسلسلات الحصرية 2025 🔥</div>
+    </div>
+
+    <!-- 2. الناف بار العلوي -->
     <nav class="fixed top-[30px] w-full z-50 bg-[#0f0f0f]/90 backdrop-blur-md border-b border-white/5 shadow-lg">
         <div class="container mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2 cursor-pointer" onclick="location.reload()">
                 <div class="flex font-deco font-black text-4xl ys-logo" dir="ltr">
-                    <span class="text-white">Y</span><span class="text-[#E50914]">S</span>
+                    <span>Y</span><span>S</span>
                 </div>
                 <span class="text-white font-en font-bold text-xl pt-1 tracking-wide">CINEMA</span>
             </div>
@@ -65,22 +216,26 @@
         </div>
     </nav>
 
+    <!-- 3. قسم الهيرو -->
     <header id="heroSection" class="relative h-[60vh] w-full mt-4 hidden">
         <div class="absolute inset-0">
             <img id="heroImage" src="" class="w-full h-full object-cover">
             <div class="absolute inset-0 bg-gradient-to-t from-[#0f0f0f] via-[#0f0f0f]/60 to-transparent"></div>
         </div>
         <div class="absolute bottom-0 w-full px-4 pb-12 z-10 flex flex-col items-center text-center animate-slide-up">
-            <span id="heroBadge" class="bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg shadow-red-600/40">عرض مميز</span>
+            <span id="heroBadge" class="bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg shadow-red-600/40">مميز اليوم</span>
             <h1 id="heroTitle" class="text-3xl md:text-5xl font-black text-white mb-3 font-en leading-tight drop-shadow-xl w-full"></h1>
             <p id="heroDesc" class="text-gray-300 text-sm max-w-lg line-clamp-2 leading-relaxed opacity-90 mb-4"></p>
             <button onclick="openHeroDetails()" class="bg-white text-black hover:bg-gray-200 px-8 py-2.5 rounded-full font-bold flex items-center gap-2 transition transform hover:scale-105">
-                <i data-lucide="play-circle" class="w-5 h-5"></i> المشاهدة
+                <i data-lucide="play-circle" class="w-5 h-5"></i> التفاصيل والمشاهدة
             </button>
         </div>
     </header>
 
+    <!-- 4. المحتوى الرئيسي -->
     <main class="container mx-auto px-4 py-8 min-h-screen">
+        
+        <!-- أزرار التنقل الرئيسية -->
         <div class="flex flex-col gap-4 mb-8">
             <div class="flex bg-[#1a1a1a] p-1.5 rounded-xl border border-white/5">
                 <button id="btn-movies" class="nav-tab active-tab" onclick="switchTab('movies')">
@@ -93,33 +248,58 @@
                     <span class="flex items-center justify-center gap-2"><i data-lucide="layout-grid" class="w-4 h-4"></i> المكتبة</span>
                 </button>
             </div>
-            
-            <div class="relative search-box rounded-xl bg-[#1a1a1a] border border-[#333]">
-                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none"><i data-lucide="search" class="w-5 h-5 text-gray-500"></i></div>
-                <input type="text" id="mainSearchInput" class="w-full bg-transparent text-white pl-4 pr-10 py-3 rounded-xl focus:outline-none placeholder-gray-600 text-sm font-bold" placeholder="ابحث..." oninput="handleSearch(this.value)">
+
+            <div class="relative search-box rounded-xl">
+                <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <i data-lucide="search" class="w-5 h-5 text-gray-500"></i>
+                </div>
+                <input type="text" 
+                       id="mainSearchInput"
+                       class="w-full bg-transparent text-white pl-4 pr-10 py-3 rounded-xl focus:outline-none placeholder-gray-600 text-sm font-bold"
+                       placeholder="ابحث عن فيلم أو مسلسل..." 
+                       oninput="handleSearch(this.value)">
             </div>
         </div>
 
         <div class="flex items-center gap-3 mb-6">
             <h3 class="text-white font-bold whitespace-nowrap pl-2 border-l-2 border-brand-red ml-2">التصنيفات</h3>
-            <div class="flex gap-2 overflow-x-auto hide-scroll pb-1 w-full" id="categoriesContainer"></div>
+            <div class="flex gap-2 overflow-x-auto hide-scroll pb-1 w-full" id="categoriesContainer">
+                <button class="cat-btn active" onclick="filterCategory('الكل', this)">الكل</button>
+            </div>
         </div>
 
-        <h2 id="sectionTitle" class="text-xl font-bold text-white font-sans mb-4">الأفلام</h2>
-        
+        <div class="flex items-center justify-between mb-4">
+            <h2 id="sectionTitle" class="text-xl font-bold text-white font-sans">الأحدث إضافة</h2>
+        </div>
+
         <div id="loading" class="flex justify-center py-20">
             <div class="w-10 h-10 border-4 border-brand-red border-t-transparent rounded-full animate-spin"></div>
         </div>
-        
+
         <div id="moviesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></div>
-        <div id="emptyMessage" class="hidden flex-col items-center justify-center py-20 opacity-50 text-center"><p class="text-gray-400 font-bold">لا توجد نتائج</p></div>
+        
+        <div id="emptyMessage" class="hidden flex-col items-center justify-center py-20 opacity-50 text-center">
+            <div class="bg-white/5 p-4 rounded-full mb-4">
+                <i data-lucide="film" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <p class="text-gray-400 font-bold">لا توجد نتائج مطابقة</p>
+        </div>
     </main>
 
-    <!-- Modal التفاصيل -->
+    <footer class="bg-[#1a1a1a] border-t border-white/5 py-8 mt-auto">
+        <div class="container mx-auto px-4 text-center">
+            <div class="flex justify-center font-deco font-black text-2xl ys-logo mb-4" dir="ltr">
+                <span>Y</span><span>S</span>
+            </div>
+            <p class="text-gray-500 text-sm">جميع الحقوق محفوظة © 2025</p>
+        </div>
+    </footer>
+
+    <!-- نافذة التفاصيل والمشغل -->
     <div id="detailsModal" class="fixed inset-0 z-[100] hidden bg-black/95 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-[#141414] w-full max-w-5xl rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row max-h-[90vh] shadow-2xl relative animate-slide-up">
             <button onclick="closeModal()" class="absolute top-4 right-4 z-20 bg-black/50 p-2 rounded-full text-white hover:bg-white/20 transition"><i data-lucide="x" class="w-5 h-5"></i></button>
-            <div class="w-full md:w-1/3 h-64 md:h-auto relative shrink-0">
+            <div class="w-full md:w-2/5 h-64 md:h-auto relative">
                 <img id="modalPoster" src="" class="w-full h-full object-cover">
                 <div class="absolute inset-0 bg-gradient-to-t from-[#141414] to-transparent md:hidden"></div>
             </div>
@@ -128,14 +308,16 @@
                 <div class="flex justify-end items-center gap-3 text-xs font-bold text-gray-400 mb-4">
                     <span id="modalYear" class="border border-white/20 px-2 py-1 rounded"></span>
                     <span id="modalCategory" class="text-brand-red bg-red-900/10 px-2 py-1 rounded"></span>
+                    <span class="bg-white/10 px-2 py-1 rounded text-white">HD</span>
                 </div>
                 <p id="modalDesc" class="text-gray-300 text-sm leading-relaxed mb-6 border-r-2 border-brand-red/50 pr-3 pl-2"></p>
+                <!-- منطقة الأزرار الديناميكية (مشاهدة فيلم / مواسم وحلقات) -->
                 <div id="actionArea" class="mt-auto space-y-4"></div>
             </div>
         </div>
     </div>
 
-    <!-- Player Modal -->
+    <!-- نافذة المشغل -->
     <div id="playerModal" class="fixed inset-0 z-[150] hidden bg-black flex flex-col">
         <div class="flex justify-between items-center p-4 bg-black border-b border-white/10">
             <button onclick="closePlayer()" class="text-white hover:text-brand-red transition"><i data-lucide="arrow-right" class="w-6 h-6"></i></button>
@@ -147,9 +329,13 @@
     </div>
 
     <script>
-        // الروابط
+        // ======================= الروابط الصحيحة =======================
+        // ملف الأفلام
         const MOVIES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTn9dyAUgn8HOEIsOE8O9y_UJ1CJ9IuSdGIFpSawVta28mee1fFTKqoKZ2vo2t8nCPh0vUCduSZ8KxP/pub?output=csv";
+        
+        // ملف المسلسلات (تم إصلاح الرابط هنا ليكون csv)
         const SERIES_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRHXwAAqg5ILlt_dXvgQ1akSQOWxNIe2Tz-FvTRMA_ajtW14q68fm1pb-EyxNj9AOXBacAxAOnx86cx/pub?output=csv"; 
+        // ===============================================================
 
         let moviesOnly = [];
         let seriesOnly = [];
@@ -158,7 +344,17 @@
         let heroMovie = null;
         let plyrInstance = null;
 
-        document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); fetchData(); });
+        document.addEventListener('DOMContentLoaded', () => {
+            // إخفاء شاشة الترحيب بعد 3 ثواني
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+            }, 3000);
+
+            lucide.createIcons();
+            fetchData();
+        });
 
         function fetchData() {
             let loadedCount = 0;
@@ -169,8 +365,22 @@
                     switchTab('movies'); 
                 }
             };
-            Papa.parse(MOVIES_SHEET_URL, { download: true, header: true, skipEmptyLines: true, complete: res => { moviesOnly = res.data.reverse().map(i => ({...i, type: 'film'})); checkLoad(); } });
-            Papa.parse(SERIES_SHEET_URL, { download: true, header: true, skipEmptyLines: true, complete: res => { seriesOnly = res.data.reverse().map(i => ({...i, type: 'series'})); checkLoad(); } });
+
+            Papa.parse(MOVIES_SHEET_URL, { 
+                download: true, header: true, skipEmptyLines: true, 
+                complete: res => { 
+                    moviesOnly = res.data.reverse().map(i => ({...i, type: 'film'})); 
+                    checkLoad(); 
+                } 
+            });
+
+            Papa.parse(SERIES_SHEET_URL, { 
+                download: true, header: true, skipEmptyLines: true, 
+                complete: res => { 
+                    seriesOnly = res.data.reverse().map(i => ({...i, type: 'series'})); 
+                    checkLoad(); 
+                } 
+            });
         }
 
         function switchTab(tabName) {
@@ -190,6 +400,7 @@
             }
 
             if(currentViewData.length > 0) setupHero(currentViewData[0]);
+            
             document.getElementById('mainSearchInput').value = '';
             setupCategories(currentViewData);
             renderContent(currentViewData);
@@ -211,23 +422,34 @@
         function filterCategory(cat, btn) {
             document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            if (cat === 'الكل') renderContent(currentViewData);
-            else renderContent(currentViewData.filter(m => m.Category === cat));
+            
+            if (cat === 'الكل') {
+                renderContent(currentViewData);
+            } else {
+                renderContent(currentViewData.filter(m => m.Category === cat));
+            }
         }
 
         function renderContent(list) {
             const grid = document.getElementById('moviesGrid');
             const emptyMsg = document.getElementById('emptyMessage');
             grid.innerHTML = '';
-            if (!list || list.length === 0) { emptyMsg.classList.remove('hidden'); emptyMsg.classList.add('flex'); return; }
-            emptyMsg.classList.add('hidden'); emptyMsg.classList.remove('flex');
+            
+            if (!list || list.length === 0) {
+                if(emptyMsg) { emptyMsg.classList.remove('hidden'); emptyMsg.classList.add('flex'); }
+                return;
+            }
+            
+            if(emptyMsg) { emptyMsg.classList.add('hidden'); emptyMsg.classList.remove('flex'); }
 
             list.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'group relative rounded-xl overflow-hidden cursor-pointer aspect-[2/3] bg-[#1a1a1a] transition hover:shadow-2xl hover:shadow-red-900/20';
                 card.onclick = () => openModal(item);
+                
                 const badgeText = item.type === 'series' ? 'مسلسل' : 'فيلم';
                 const badgeColor = item.type === 'series' ? 'bg-blue-600' : 'bg-black/60 border border-white/20';
+
                 card.innerHTML = `
                     <img src="${item.Cover}" loading="lazy" class="w-full h-full object-cover transition duration-500 group-hover:scale-110 group-hover:opacity-80">
                     <span class="absolute top-2 right-2 ${badgeColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-20 shadow">${badgeText}</span>
@@ -255,9 +477,11 @@
             document.getElementById('heroDesc').innerText = item.Description;
             const badge = document.getElementById('heroBadge');
             if(item.type === 'series') {
-                badge.innerText = 'مسلسل مميز'; badge.className = 'bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
+                badge.innerText = 'مسلسل مميز';
+                badge.className = 'bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
             } else {
-                badge.innerText = 'فيلم مميز'; badge.className = 'bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
+                badge.innerText = 'فيلم مميز';
+                badge.className = 'bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg';
             }
         }
         function openHeroDetails() { if(heroMovie) openModal(heroMovie); }
@@ -275,24 +499,25 @@
 
             if (item.type === 'film') {
                 const btn = document.createElement('button');
-                btn.className = 'w-full bg-brand-red text-white py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-red-700 transition shadow-lg shadow-red-900/20';
-                btn.innerHTML = 'مشاهدة الفيلم <i data-lucide="play" class="w-5 h-5"></i>';
+                btn.className = 'w-full bg-brand-red text-white py-3.5 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-red-700 transition shadow-lg shadow-red-900/20 group';
+                btn.innerHTML = 'مشاهدة الفيلم <i data-lucide="play" class="w-5 h-5 group-hover:scale-110 transition"></i>';
                 btn.onclick = () => playVideo(item.Link, item.Title);
                 actionArea.appendChild(btn);
             } else {
-                // استخدام دالة التحليل الجديدة
+                // ==========================================
+                // استخدام دالة التحليل الذكية
+                // ==========================================
                 const seasons = parseSeriesText(item.Link);
                 if (Object.keys(seasons).length === 0) {
                     actionArea.innerHTML = '<div class="text-center p-4 bg-white/5 rounded-lg text-red-400">لا توجد حلقات متاحة حالياً</div>';
                 } else {
                     const seasonTabs = document.createElement('div');
-                    seasonTabs.className = 'flex gap-2 overflow-x-auto hide-scroll mb-4 border-b border-white/10 pb-3';
+                    seasonTabs.className = 'season-tabs-container hide-scroll'; 
                     
                     const episodesList = document.createElement('div');
-                    episodesList.className = 'flex flex-col gap-2 max-h-[250px] overflow-y-auto pr-2 custom-scroll';
+                    episodesList.className = 'flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scroll';
 
                     let firstSeason = true;
-                    // تكرار عبر المواسم
                     for (const [seasonName, episodes] of Object.entries(seasons)) {
                         const sBtn = document.createElement('button');
                         sBtn.className = `season-btn ${firstSeason ? 'active-season' : ''}`;
@@ -318,47 +543,42 @@
         }
 
         // ===============================================
-        // دالة التحليل المحدثة (Fix for Invisible Chars)
+        // دالة تحليل النصوص (ذكية ومتطورة)
         // ===============================================
         function parseSeriesText(text) {
             if(!text) return {};
             
-            // تقسيم النص مع دعم مختلف أنواع الأسطر الجديدة
             const lines = text.split(/\r?\n/);
             const seasons = {};
             let currentSeason = 'الموسم 1';
 
             lines.forEach(line => {
-                // تنظيف الخط: إزالة الأحرف المخفية (مثل علامات اتجاه النص) والمسافات الزائدة
-                // \u200B-\u200D هي مسافات صفرية، \uFEFF هي BOM، \u200E\u200F هي علامات RTL/LTR
-                line = line.replace(/[\u200B-\u200D\uFEFF\u200E\u200F]/g, '').trim();
+                // تنظيف الأحرف المخفية والمسافات والأقواس
+                line = line.replace(/[\u200B-\u200D\uFEFF\u200E\u200F\u00A0\[\]]/g, '').trim();
 
-                if (!line) return; // تجاهل الأسطر الفارغة
+                if (!line) return;
 
-                // التحقق من وجود كلمة "الموسم"
-                if (line.includes('الموسم') || line.toLowerCase().includes('season')) {
-                    // تنظيف اسم الموسم (إزالة النقطتين أو المسافات من النهاية)
+                // اكتشاف الموسم
+                if (/^(الموسم|موسم|Season|S)\s*\d+/i.test(line)) {
                     currentSeason = line.replace(/[:-\s]+$/, ""); 
                 } 
-                // التحقق من وجود رابط
+                // اكتشاف الرابط
                 else if (line.includes('http')) {
                     if (!seasons[currentSeason]) seasons[currentSeason] = [];
                     
-                    let parts = line.split(/[:|]/); // الفاصل هو : أو |
+                    let parts = line.split(/[:|\-]/); 
                     let epLink = "";
                     let epName = "";
 
-                    // محاولة ذكية لفصل الرابط عن الاسم
                     const linkIndex = parts.findIndex(p => p.includes('http'));
                     
                     if(linkIndex !== -1) {
-                        epLink = parts.slice(linkIndex).join(':').trim(); // تجميع الرابط مرة أخرى
+                        epLink = parts.slice(linkIndex).join(':').trim();
                         epName = parts.slice(0, linkIndex).join(' ').trim();
                     } else {
                         epLink = line;
                     }
 
-                    // إذا لم يوجد اسم، نضع اسماً افتراضياً
                     if(!epName || epName.length < 2) epName = `حلقة ${seasons[currentSeason].length + 1}`;
 
                     seasons[currentSeason].push({ name: epName, link: epLink });
@@ -369,10 +589,21 @@
 
         function renderEpisodes(episodes, container, seriesTitle) {
             container.innerHTML = '';
-            episodes.forEach(ep => {
-                const btn = document.createElement('button');
-                btn.className = 'episode-btn';
-                btn.innerHTML = `<span class="font-bold text-gray-400 text-sm">${ep.name}</span><i data-lucide="play-circle" class="w-5 h-5"></i>`;
+            episodes.forEach((ep, index) => {
+                const btn = document.createElement('div');
+                btn.className = 'episode-card group'; 
+                
+                const displayName = ep.name.includes('حلقة') ? ep.name : `الحلقة ${index + 1}: ${ep.name}`;
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-gray-500 text-xs font-mono font-bold">#${index + 1}</span>
+                        <span class="episode-title">${displayName}</span>
+                    </div>
+                    <div class="play-icon">
+                        <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                    </div>
+                `;
                 btn.onclick = () => playVideo(ep.link, `${seriesTitle} - ${ep.name}`);
                 container.appendChild(btn);
             });
